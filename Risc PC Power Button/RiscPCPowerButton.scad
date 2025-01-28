@@ -15,6 +15,8 @@ sidewidth = 1.6;
 leftdepth = 3;
 rightdepth = 2.9;
 
+reinforced = false;
+
 stemwidth = 4.9;
 stemheight = 5.9;
 stemdepth = 26.3;
@@ -54,36 +56,44 @@ difference() {
 
 		// stem
 		translate([width / 2, depth, 17 - stemheight / 2])
-			rotate([-90, 0, 0])
-				union() {
-					// cross part
-					linear_extrude(stemdepth)
-						union() {
-							square([stemmiddle, stemheight], center = true);
-							square([stemwidth, stemmiddle], center = true);
-						}
+			rotate([-90, 0, 0]) {
+                difference() {
+                    if (!reinforced) {
+                        union() {
+                            // cross part
+                            linear_extrude(stemdepth)
+                                union() {
+                                    square([stemmiddle, stemheight], center = true);
+                                    square([stemwidth, stemmiddle], center = true);
+                                }
 
-					// cylinder part
-					translate([0, 0, stemdepth + cyldepth / 2]) {
-						difference() {
-							cylinder(h = cyldepth, r = cyldia / 2, center = true, $fn = cyldetail);
-                            
-                            // cut out the square section
-							translate([0, 0, (cyldepth - cylcutoutdepth) / 2 + epsilon])
-								cube([cylcutout, cylcutout, cylcutoutdepth], center = true);
+                            // cylinder part
+                            translate([0, 0, stemdepth + cyldepth / 2])
+                                cylinder(h = cyldepth, r = cyldia / 2, center = true, $fn = cyldetail);
+                        }
+                    } else {
+                        translate([0, 0, (stemdepth + cyldepth) / 2])
+                            cylinder(h = stemdepth + cyldepth, r1 = cyldia / 2, r2 = cyldia / 2, center = true);
+                    }
 
-                            // cut out the mouth section
-							translate([0, 0, (cyldepth - mouthdepth) / 2 + epsilon]) {
-								cube([mouthwidth, mouthheight, mouthdepth], center = true);
-                                
-                                // round off the mouth section
-                                translate([0, 0, -mouthdepth / 2])
-                                    rotate([0, 90, 0])
-                                        cylinder(h = mouthwidth, r = 0.75, center = true, $fn = cyldetail);
-                            }
-						}
-					}
-				}
+                    translate([0, 0, stemdepth + cyldepth / 2])
+                        union() {
+                                // cut out the square section
+                                translate([0, 0, (cyldepth - cylcutoutdepth) / 2 + epsilon])
+                                    cube([cylcutout, cylcutout, cylcutoutdepth], center = true);
+
+                                // cut out the mouth section
+                                translate([0, 0, (cyldepth - mouthdepth) / 2 + epsilon]) {
+                                    cube([mouthwidth, mouthheight, mouthdepth], center = true);
+                                    
+                                    // round off the mouth section
+                                    translate([0, 0, -mouthdepth / 2])
+                                        rotate([0, 90, 0])
+                                            cylinder(h = mouthwidth, r = 0.75, center = true, $fn = cyldetail);
+                                }
+                        }
+                }
+            }
 
 		lefthand = [sidewidth, leftdepth, height];
 		translate([0, depth, 0])
