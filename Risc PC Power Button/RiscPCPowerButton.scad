@@ -44,6 +44,8 @@ pushdepth = 1;
 push_y = 14; // from bottom
 pushdetail = 150;
 
+top = false; // additional top fill
+
 difference() {
 	union() {
 		// front
@@ -100,6 +102,13 @@ difference() {
 								[t + epsilon, t + epsilon],
 								[-epsilon, t + epsilon]]);
 			}
+        
+        // top fill (additional)
+        if (top) {
+            top = [width - sidewidth * 2, leftdepth, sidewidth];
+            translate([sidewidth, depth, height - sidewidth])
+                cube(size = top);
+       }
 
 		// power symbol
         if (symbol) {
