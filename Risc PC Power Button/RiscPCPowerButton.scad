@@ -73,7 +73,7 @@ difference() {
 						}
 					} else {
 						translate([0, 0, (stemdepth + cyldepth) / 2])
-							cylinder(h = stemdepth + cyldepth, r1 = cyldia / 2, r2 = cyldia / 2, center = true);
+							cylinder(h = stemdepth + cyldepth, r1 = cyldia / 2, r2 = cyldia / 2, center = true, $fn = cyldetail);
 					}
 
 					translate([0, 0, stemdepth + cyldepth / 2])
