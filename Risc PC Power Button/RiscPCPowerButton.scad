@@ -27,7 +27,7 @@ cylcutoutdepth = 9.0;
 
 mouthwidth = 10;
 mouthheight = 1.5;
-mouthdepth = 5;
+mouthdepth = 4;
 
 symboldia = 5;
 symboldepth = 0.3;
@@ -61,12 +61,20 @@ difference() {
 					translate([0, 0, stemdepth + cyldepth / 2]) {
 						difference() {
 							cylinder(h = cyldepth, r = cyldia / 2, center = true, $fn = cyldetail);
+                            
+                            // cut out the square section
 							translate([0, 0, (cyldepth - cylcutoutdepth) / 2 + epsilon])
 								cube([cylcutout, cylcutout, cylcutoutdepth], center = true);
 
-							// this ought to be rounded at the nearside
-							translate([0, 0, (cyldepth - mouthdepth) / 2 + epsilon])
+                            // cut out the mouth section
+							translate([0, 0, (cyldepth - mouthdepth) / 2 + epsilon]) {
 								cube([mouthwidth, mouthheight, mouthdepth], center = true);
+                                
+                                // round off the mouth section
+                                translate([0, 0, -mouthdepth / 2])
+                                    rotate([0, 90, 0])
+                                        cylinder(h = mouthwidth, r = 0.75, center = true, $fn = cyldetail);
+                            }
 						}
 					}
 				}
