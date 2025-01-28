@@ -1,5 +1,7 @@
 // OpenSCAD definition for an Acorn Risc PC Power Button
 //
+// This was measured from a real Risc PC power button to 0.1mm accuracy.
+//
 // by David Thomas, 28-Jan-25
 //
 
@@ -29,12 +31,14 @@ mouthwidth = 10;
 mouthheight = 1.5;
 mouthdepth = 4;
 
+symbol = true;
 symboldia = 5;
 symboldepth = 0.3;
-symbol_y = 6.3 / 2; // from bottom
+symbol_y = 3.15; // from bottom
 symboldetail = cyldetail;
 symbolthickness = 0.25;
 
+push = true;
 pushsize = 45; // sphere diameter
 pushdepth = 1;
 push_y = 14; // from bottom
@@ -98,19 +102,23 @@ difference() {
 			}
 
 		// power symbol
-		translate([width / 2, -symboldepth, symbol_y])
-			rotate([-90, 0, 0])
-				linear_extrude(1)
-					union() {
-						difference() {
-							circle(d = symboldia, $fn = symboldetail);
-							circle(d = symboldia - symbolthickness * 2, $fn = symboldetail);
-						}
-						square([symbolthickness, 3], center = true);
-					}
+        if (symbol) {
+            translate([width / 2, -symboldepth, symbol_y])
+                rotate([-90, 0, 0])
+                    linear_extrude(1)
+                        union() {
+                            difference() {
+                                circle(d = symboldia, $fn = symboldetail);
+                                circle(d = symboldia - symbolthickness * 2, $fn = symboldetail);
+                            }
+                            square([symbolthickness, 3], center = true);
+                        }
+        }
 	}
 
 	// push impression
-	translate([width / 2, -pushsize / 2 + pushdepth, push_y])
-		sphere(d = pushsize, $fn = pushdetail);
+    if (push) {
+        translate([width / 2, -pushsize / 2 + pushdepth, push_y])
+            sphere(d = pushsize, $fn = pushdetail);
+    }
 }
