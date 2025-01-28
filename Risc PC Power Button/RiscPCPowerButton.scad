@@ -124,13 +124,13 @@ difference() {
 		if (symbol) {
 			translate([width / 2, -symboldepth, symbol_y])
 				rotate([-90, 0, 0])
-					linear_extrude(1)
+					linear_extrude(symboldepth)
 						union() {
 							difference() {
 								circle(d = symboldia, $fn = symboldetail);
 								circle(d = symboldia - symbolthickness * 2, $fn = symboldetail);
 							}
-							square([symbolthickness, 3], center = true);
+							square([symbolthickness, symboldia * 3 / 4], center = true);
 						}
 		}
 	}
