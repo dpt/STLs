@@ -29,9 +29,11 @@ cyldetail = 30;
 cylcutout = 3.5;
 cylcutoutdepth = 9.0;
 
-mouthwidth = 10;
+mouthwidth = 6;
 mouthheight = 1.5;
 mouthdepth = 4;
+
+griprad = 0.5; // radius of grip bars inside mouth
 
 symbol = true; // enables symbol on button front
 symboldia = 5;
@@ -113,49 +115,71 @@ module front() {
 	}
 }
 
-module stem() {
-    translate([width / 2, depth, 17 - stemheight / 2])
-        rotate([-90, 0, 0]) {
-            difference() {
-                if (!reinforced) {
-                    union() {
-                        // cross part
-                        linear_extrude(stemdepth)
-                            union() {
-                                square([stemmiddle, stemheight], center = true);
-                                square([stemwidth, stemmiddle], center = true);
-                            }
-
-                        // cylinder part
-                        translate([0, 0, stemdepth + cyldepth / 2])
-                            cylinder(h = cyldepth, r = cyldia / 2, center = true, $fn = cyldetail);
-                    }
-                } else {
-                    translate([0, 0, (stemdepth + cyldepth) / 2])
-                        cylinder(h = stemdepth + cyldepth, r1 = cyldia / 2, r2 = cyldia / 2, center = true, $fn = cyldetail);
+module cross() {
+    if (!reinforced) {
+        union() {
+            // cross part
+            linear_extrude(stemdepth)
+                union() {
+                    square([stemmiddle, stemheight], center = true);
+                    square([stemwidth, stemmiddle], center = true);
                 }
 
-                translate([0, 0, stemdepth + cyldepth / 2])
-                    union() {
-                        // cut out the square section
-                        translate([0, 0, (cyldepth - cylcutoutdepth) / 2 + epsilon])
-                            cube([cylcutout, cylcutout, cylcutoutdepth], center = true);
+            // cylinder part
+            translate([0, 0, stemdepth + cyldepth / 2])
+                cylinder(h = cyldepth, r = cyldia / 2, center = true, $fn = cyldetail);
+        }
+    } else {
+        translate([0, 0, (stemdepth + cyldepth) / 2])
+            cylinder(h = stemdepth + cyldepth, r1 = cyldia / 2, r2 = cyldia / 2, center = true, $fn = cyldetail);
+    }
+}
 
-                        // cut out the mouth section
-                        translate([0, 0, (cyldepth - mouthdepth) / 2 + epsilon]) {
-                            cube([mouthwidth, mouthheight, mouthdepth], center = true);
-                            
-                            // round off the mouth section
-                            translate([0, 0, -mouthdepth / 2])
-                                rotate([0, 90, 0])
-                                    cylinder(h = mouthwidth, r = 0.75, center = true, $fn = cyldetail);
-                        }
-                    }
+module clipcutout() {
+    difference() {
+        union() {
+            // cut out the square section
+            translate([0, 0, (cyldepth - cylcutoutdepth) / 2 + epsilon])
+                cube([cylcutout, cylcutout, cylcutoutdepth], center = true);
+
+            // cut out the mouth section
+            translate([0, 0, (cyldepth - mouthdepth) / 2 + epsilon]) {
+                cube([mouthwidth, mouthheight, mouthdepth], center = true);
+                
+                // round off the mouth section
+                translate([0, 0, -mouthdepth / 2])
+                    rotate([0, 90, 0])
+                        cylinder(h = mouthwidth, r = 0.75, center = true, $fn = cyldetail);
             }
         }
+        
+        // add grip bars inside the mouth
+        
+        y = cylcutout / 2 + griprad / 2;
+        
+        translate([0, y, cylcutoutdepth / 2 - 1])
+            rotate([0, 90, 0])
+                cylinder(h = cylcutout, r = griprad, center = true, $fn = cyldetail);
+        
+        translate([0, -y, cylcutoutdepth / 2 - 1])
+            rotate([0, 90, 0])
+                cylinder(h = cylcutout, r = griprad, center = true, $fn = cyldetail);
+    }
+}
+
+module stem() {
+    difference() {
+        cross();
+        
+        translate([0, 0, stemdepth + cyldepth / 2])
+            clipcutout();
+    }
 }
 
 union() {
     front();
-    stem();
+    
+    translate([width / 2, depth, 17 - stemheight / 2])
+        rotate([-90, 0, 0])
+            stem();
 }
