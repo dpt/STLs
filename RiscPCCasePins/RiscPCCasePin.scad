@@ -5,7 +5,9 @@
 // by David Thomas, 31-Jan-25
 //
 
-epsilon = 0.01; // aka bodge factor
+$fn = 25; // detail level
+
+Epsilon = 0.01; // aka bodge factor
 
 HandleWidth = 39.2;
 HandleDepth = 10;
@@ -24,7 +26,7 @@ StemTopDepth = 12.6;
 SphereDiameter = HandleDepth - HandleLipWidth * 2;
 SphereHeight = 1.4;
 
-StemHeight = 76.5; // with rubber deducted
+StemHeight = 76.5; // has rubber inset deducted
 StemUpperDiameter = 7.1;
 StemBottomDiameter = 3.7; // guess
 
@@ -40,9 +42,7 @@ BarbWidth = 8;
 BarbDepth = 2;
 BarbHeight = 8;
 
-$fn = 25;
-
-stemcentre = -(HandleWidth - HandleDepth) / 2; // where the stem is centred
+StemHoleCentre = -(HandleWidth - HandleDepth) / 2; // where the stem is centred
 
 module capsule(width, radius) {
     hull() {
@@ -57,12 +57,12 @@ module rear_pin_top_flat() {
         linear_extrude(HandleHeight, center = true)
             capsule(HandleWidth, HandleDepth / 2);
             
-        translate([0, 0, (HandleHeight - HandleLipHeight) / 2 + epsilon])
+        translate([0, 0, (HandleHeight - HandleLipHeight) / 2 + Epsilon])
             linear_extrude(HandleLipHeight, center = true)
                 capsule(HandleWidth - HandleLipWidth * 2, HandleDepth / 2 - HandleLipWidth);
         
         // cut centre hole
-        cylinder(h = HandleHeight + epsilon, d = LockHoleDiameter, center = true);
+        cylinder(h = HandleHeight + Epsilon, d = LockHoleDiameter, center = true);
     }
 }
 
@@ -80,10 +80,14 @@ module rear_pin_top() {
         }
         
         // cut bigger hole towards stem
-        t = HandleHeight / 2 - HandleLipHeight + 2 * epsilon; // needed extra bodge
-        translate([stemcentre, 0, -StemHoleDepth / 2 + t])
+        t = HandleHeight / 2 - HandleLipHeight + 2 * Epsilon; // needed extra bodge
+        translate([StemHoleCentre, 0, -StemHoleDepth / 2 + t])
             cylinder(h = StemHoleDepth, d = StemHoleDiameter, center = true);
    }
+}
+
+// TODO
+module front_pin_top() {
 }
 
 module stemcutter(z) {
@@ -102,11 +106,15 @@ module stemcutter(z) {
 }
 
 // TODO causes unclosed mesh or vanishing somehow
-module barb() {
-    scale(6)
-        rotate_extrude($fn = 4)
-            translate([1, 0, 0])
-                circle(r = 1);
+module barbcutter() {
+    scale(4 + Epsilon)
+        translate([0, 0, 1])
+            union() {
+                for (a = [0:3])
+                    rotate([0, 90, a * 90])
+                        linear_extrude(height = 1, center = true)
+                            polygon([[1,0], [1,1], [0,1]]);
+            }
 }
 
 module stem() {
@@ -124,21 +132,21 @@ module stem() {
                     cube([BarbWidth, BarbDepth, BarbHeight], center = true);
             }
         }
-        
-        // cut away the sections of stem
-        z = (StemHeight / 2) - (21 - 17.4);
+
+        // cut away the cuboid sections of stem
+        z = (StemHeight / 2) - (21 - 17.4); // fix
         for (a = [0:3])  // will need >3 for longer pins
             stemcutter(z - StemCutoutInterval * a);
         
         // cut the barb
-        translate([0, 0, -38.5]) // fix
-            barb();
-    }
+        translate([0, 0, -StemHeight / 2])
+            barbcutter();
+   }
 }
 
 union() {
     rear_pin_top();
-    translate([stemcentre, 0, -54])
+    translate([StemHoleCentre, 0, -54]) // fix
         rotate([0, 0, 90])
             stem();
 }
