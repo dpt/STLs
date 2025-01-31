@@ -7,44 +7,42 @@
 
 epsilon = 0.01; // aka bodge factor
 
-width = 39.2;
-depth = 10;
-height = 5.1;
+HandleWidth = 39.2;
+HandleDepth = 10;
+HandleHeight = 5.1;
+HandleLipWidth = 1.35; // width of lip around edge of handle
+HandleLipHeight = 2;
 
-edge = 1.35; // width of edge/lip
+LockHoleDiameter = 6.5;
 
-innerheight = 2;
+StemHoleDiameter = HandleDepth - HandleLipWidth * 2;
+StemHoleDepth = 14.3;
 
-centreholedia = 6.5;
-biggerholedia = depth - edge * 2;
-biggerholedepth = 14.3;
+StemUpperDiametermeter = 9.8;
+StemTopDepth = 12.6;
 
-topstemdia = 9.8;
-topstemdepth = 12.6;
+SphereDiameter = HandleDepth - HandleLipWidth * 2;
+SphereHeight = 1.4;
 
-spheredia = depth - edge * 2;
-sphereheight = 1.4;
+StemHeight = 76.5; // with rubber deducted
+StemUpperDiameter = 7.1;
+StemBottomDiameter = 3.7; // guess
 
-stemheight = 76.5; // with rubber deducted
-stemtopdia = 7.1;
-stembotdia = 3.7; // guess
+StemRubberInsetHeight = 1.3; // recess for rubber band to sit in
+StemRubberInsetDiameter = 6.7;
 
-stemrubberheight = 1.3;
-stemrubberdia = 6.7; // recess for rubber to sit in
+StemCutoutWidth = 4;
+StemCutoutDepth = 4;
+StemCutoutHeight = 17.9;
+StemCutoutInterval = 20;
 
-stemcutwidth = 4;
-stemcutdepth = 4;
-stemcutheight = 17.9;
-
-stemcutinterval = 20;
-
-barbwidth = 8;
-barbdepth = 2;
-barbheight = 8;
+BarbWidth = 8;
+BarbDepth = 2;
+BarbHeight = 8;
 
 $fn = 25;
 
-stemcentre = -(width / 2 - depth / 2); // where the stem is centred
+stemcentre = -(HandleWidth - HandleDepth) / 2; // where the stem is centred
 
 module capsule(width, radius) {
     hull() {
@@ -56,15 +54,15 @@ module capsule(width, radius) {
 
 module rear_pin_top_flat() {
     difference() {
-        linear_extrude(height, center = true)
-            capsule(width, depth / 2);
+        linear_extrude(HandleHeight, center = true)
+            capsule(HandleWidth, HandleDepth / 2);
             
-        translate([0, 0, (height - innerheight) / 2 + epsilon])
-            linear_extrude(innerheight, center = true)
-                capsule(width - edge * 2, depth / 2 - edge);
+        translate([0, 0, (HandleHeight - HandleLipHeight) / 2 + epsilon])
+            linear_extrude(HandleLipHeight, center = true)
+                capsule(HandleWidth - HandleLipWidth * 2, HandleDepth / 2 - HandleLipWidth);
         
         // cut centre hole
-        cylinder(h = height + epsilon, d = centreholedia, center = true);
+        cylinder(h = HandleHeight + epsilon, d = LockHoleDiameter, center = true);
     }
 }
 
@@ -73,33 +71,33 @@ module rear_pin_top() {
         union() {
             rear_pin_top_flat();
             
-            translate([-(width - depth) / 2, 0, -(height + topstemdepth) / 2])
-                cylinder(h = topstemdepth, d = topstemdia, center = true);
+            translate([-(HandleWidth - HandleDepth) / 2, 0, -(HandleHeight + StemTopDepth) / 2])
+                cylinder(h = StemTopDepth, d = StemUpperDiametermeter, center = true);
         
-            translate([(width - depth) / 2, 0, -height / 2])
+            translate([(HandleWidth - HandleDepth) / 2, 0, -HandleHeight / 2])
                 scale([1, 1, 0.5])
-                    sphere(d = spheredia);
+                    sphere(d = SphereDiameter);
         }
         
         // cut bigger hole towards stem
-        t = height / 2 - innerheight + 2 * epsilon; // needed extra bodge
-        translate([stemcentre, 0, -biggerholedepth / 2 + t])
-            cylinder(h = biggerholedepth, d = biggerholedia, center = true);
+        t = HandleHeight / 2 - HandleLipHeight + 2 * epsilon; // needed extra bodge
+        translate([stemcentre, 0, -StemHoleDepth / 2 + t])
+            cylinder(h = StemHoleDepth, d = StemHoleDiameter, center = true);
    }
 }
 
 module stemcutter(z) {
-    x = (stemcutwidth + 2) / 2;
-    d = (stemcutdepth + 2) / 2;
-    translate([0, 0, z - stemcutheight / 2]) {
+    x = (StemCutoutWidth + 2) / 2;
+    d = (StemCutoutDepth + 2) / 2;
+    translate([0, 0, z - StemCutoutHeight / 2]) {
         translate([x, d, 0])
-            cube([stemcutwidth, stemcutdepth, stemcutheight], center = true);
+            cube([StemCutoutWidth, StemCutoutDepth, StemCutoutHeight], center = true);
         translate([-x, d, 0])
-            cube([stemcutwidth, stemcutdepth, stemcutheight], center = true);
+            cube([StemCutoutWidth, StemCutoutDepth, StemCutoutHeight], center = true);
         translate([x, -d, 0])
-            cube([stemcutwidth, stemcutdepth, stemcutheight], center = true);
+            cube([StemCutoutWidth, StemCutoutDepth, StemCutoutHeight], center = true);
         translate([-x, -d, 0])
-            cube([stemcutwidth, stemcutdepth, stemcutheight], center = true);
+            cube([StemCutoutWidth, StemCutoutDepth, StemCutoutHeight], center = true);
     }
 }
 
@@ -115,22 +113,22 @@ module stem() {
     difference() {
         union() {
             // rubber inset
-            translate([0, 0, stemheight / 2])
-                cylinder(h = stemrubberheight, d = stemrubberdia, center = true);
+            translate([0, 0, StemHeight / 2])
+                cylinder(h = StemRubberInsetHeight, d = StemRubberInsetDiameter, center = true);
 
             // main conical cylinder
-            cylinder(h = stemheight, d1 = stembotdia, d2 = stemtopdia, center = true);
+            cylinder(h = StemHeight, d1 = StemBottomDiameter, d2 = StemUpperDiameter, center = true);
             
             difference() {
-                translate([0, 0, -stemheight / 2 + barbheight / 2])
-                    cube([barbwidth, barbdepth, barbheight], center = true);
+                translate([0, 0, -StemHeight / 2 + BarbHeight / 2])
+                    cube([BarbWidth, BarbDepth, BarbHeight], center = true);
             }
         }
         
         // cut away the sections of stem
-        z = (stemheight / 2) - (21 - 17.4);
+        z = (StemHeight / 2) - (21 - 17.4);
         for (a = [0:3])  // will need >3 for longer pins
-            stemcutter(z - stemcutinterval * a);
+            stemcutter(z - StemCutoutInterval * a);
         
         // cut the barb
         translate([0, 0, -38.5]) // fix
