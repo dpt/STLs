@@ -1,13 +1,15 @@
-STLs
-====
+OpenSCAD/STL Acorn Risc PC Components
+=====================================
 
-OpenSCAD and STL models of an Acorn Risc PC power button.
+OpenSCAD sources and generated STL models of the Acorn Risc PC power button and case locking pins.
 
-![Screenshot](./RiscPCPowerButton/screenshot.png)
+![Power button screenshot](./RiscPCPowerButton/screenshot.png)
 
-The OpenSCAD model is parameterised in numerous ways, e.g. to add a reinforced stem.
+![Case locking pins screenshot](./RiscPCCasePins/screenshot.png)
 
-**Note**: I've not 3D printed and fettled / fine tuned this model as yet. It was measured from the real thing to an accuracy of 0.1mm but that's no guarantee that it'll work in its current state.
+The OpenSCAD sources are parameterised in numerous ways so you can tweak the models - within reasonable tolerances.
+
+**Note**: I've not 3D printed and fettled / fine tuned these models as yet. They were measured from the real things to an accuracy of 0.1mm but that's no guarantee that they'll work in their current state.
 
 Related Models
 ---------------
