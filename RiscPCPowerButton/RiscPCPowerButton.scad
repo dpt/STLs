@@ -24,7 +24,6 @@ stemmiddle = 1.7;
 
 cyldia = 5.8; // 5.9 wide, 5.7 high as measured but using an average here
 cyldepth = 9.6;
-cyldetail = 30;
 
 cylcutout = 3.5;
 cylcutoutdepth = 9.0;
@@ -39,23 +38,23 @@ symbol = true; // enables symbol on button front
 symboldia = 5;
 symboldepth = 0.3;
 symbol_y = 3.15; // from bottom
-symboldetail = cyldetail;
 symbolthickness = 0.25;
 
 push = true; // enables push impression on button front
 pushsize = 45; // sphere diameter
 pushdepth = 1;
 push_y = 14; // from bottom
-pushdetail = 150;
 
 top = false; // additional top fill
+
+$fn = 30;
 
 module powersymbol() {
     linear_extrude(symboldepth)
         union() {
             difference() {
-                circle(d = symboldia, $fn = symboldetail);
-                circle(d = symboldia - symbolthickness * 2, $fn = symboldetail);
+                circle(d = symboldia);
+                circle(d = symboldia - symbolthickness * 2);
             }
             square([symbolthickness, symboldia * 3 / 4], center = true);
         }
@@ -102,7 +101,7 @@ module front() {
             // push impression
             if (push) {
                 translate([width / 2, -pushsize / 2 + pushdepth, push_y])
-                    sphere(d = pushsize, $fn = pushdetail);
+                    sphere(d = pushsize, $fn = $fn * 5);
             }
         }
 
@@ -127,11 +126,11 @@ module cross() {
 
             // cylinder part
             translate([0, 0, stemdepth + cyldepth / 2])
-                cylinder(h = cyldepth, r = cyldia / 2, center = true, $fn = cyldetail);
+                cylinder(h = cyldepth, r = cyldia / 2, center = true);
         }
     } else {
         translate([0, 0, (stemdepth + cyldepth) / 2])
-            cylinder(h = stemdepth + cyldepth, r1 = cyldia / 2, r2 = cyldia / 2, center = true, $fn = cyldetail);
+            cylinder(h = stemdepth + cyldepth, r1 = cyldia / 2, r2 = cyldia / 2, center = true);
     }
 }
 
@@ -149,7 +148,7 @@ module clipcutout() {
                 // round off the mouth section
                 translate([0, 0, -mouthdepth / 2])
                     rotate([0, 90, 0])
-                        cylinder(h = mouthwidth, r = 0.75, center = true, $fn = cyldetail);
+                        cylinder(h = mouthwidth, r = 0.75, center = true);
             }
         }
         
@@ -159,11 +158,11 @@ module clipcutout() {
         
         translate([0, y, cylcutoutdepth / 2 - 1])
             rotate([0, 90, 0])
-                cylinder(h = cylcutout, r = griprad, center = true, $fn = cyldetail);
+                cylinder(h = cylcutout, r = griprad, center = true);
         
         translate([0, -y, cylcutoutdepth / 2 - 1])
             rotate([0, 90, 0])
-                cylinder(h = cylcutout, r = griprad, center = true, $fn = cyldetail);
+                cylinder(h = cylcutout, r = griprad, center = true);
     }
 }
 
