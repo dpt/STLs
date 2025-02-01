@@ -12,12 +12,17 @@
 // 2-slice front pin: 155.7mm
 // 2-slice rear pin: <won't fit in my calipers!>
 
-$fn = 25; // detail level
+// Bodge factor.
+Epsilon = 0.01;
 
-Epsilon = 0.01; // aka bodge factor
+// Overall detail level.
+$fn = 25;
 
-// How many slices of case that the piece is intended for (1 or 2).
-Slices = 1;
+// Number of slices of case that the pin is intended for.
+Slices = 1; // [1:Single slice, 2:Double slice]
+
+// Build the front or rear pin?
+Front = false;
 
 HandleWidth = 39.2; // X
 HandleDepth = 9.9; // Y
@@ -60,6 +65,13 @@ BarbHeight = 8;
 
 StemHoleCentre = -(HandleWidth - HandleDepth) / 2; // where the stem is centred
 
+// Width of handle extending halfway into lip. (Note: Lip width comes from rear pin calc).
+FrontHandleWidth = 14.9 - StemTopDiameter + HandleLipWidth / 2 - 2.3;
+// Increase this for a chunkier handle.
+FrontHandleDepth = 2.3;
+// Increase this for a deeper handle.
+FrontHandleHeight = 6.1;
+
 module capsule(width, radius) {
 	hull() {
 		x = width / 2 - radius;
@@ -97,14 +109,28 @@ module rear_pin_top() {
 					sphere(d = SphereDiameter);
 		}
 		
-		// cut bigger hole in top of stem
+		// cut hole in top of stem
 		translate([StemHoleCentre, 0, -StemHoleDepth / 2 + HandleHeight / 2 - HandleLipHeight + Epsilon * 2])
 			cylinder(h = StemHoleDepth, d = StemHoleDiameter, center = true);
    }
 }
 
-// TODO
 module front_pin_top() {
+	difference() {
+		union() {
+			cylinder(h = StemTopDepth, d = StemTopDiameter, center = true);
+			
+			translate([StemTopDiameter / 2 + FrontHandleWidth / 2 - HandleLipWidth / 2, 0, StemTopDepth / 2 - FrontHandleHeight / 2]) {
+				cube([FrontHandleWidth, FrontHandleDepth, FrontHandleHeight], center = true);
+				
+				translate([FrontHandleWidth / 2, 0, 0])
+					cylinder(h = FrontHandleHeight, d = FrontHandleDepth, center = true);
+			 }
+	   }
+		
+		translate([0, 0, 0.7 + Epsilon])
+			cylinder(h = 11.2, d = StemHoleDiameter, center = true);
+   }
 }
 
 module stemcutter() {
@@ -125,7 +151,7 @@ module stemcuttergroup() {
 }
 
 module barbcutter() {
-	scale(4 + Epsilon)
+	scale(4)
 		for (a = [0 : 3])
 			rotate([90, 0, 90 * a + 45])
 				linear_extrude(height = 2, center = true)
@@ -155,14 +181,20 @@ module stem() {
 			stemcuttergroup();
 		
 		// cut the barb
-		translate([0, 0, -StemRubberInsetHeight - StemTotalHeight])
+		translate([0, 0, -StemRubberInsetHeight - StemTotalHeight - Epsilon])
 			barbcutter();
    }
 }
 
 union() {
-	rear_pin_top();
-	translate([StemHoleCentre, 0, -HandleHeight / 2 - StemTopDepth])
-		rotate([0, 0, 90])
+	if (Front) {
+		front_pin_top();
+		translate([0, 0, -StemTopDepth / 2])
 			stem();
+	} else {
+		rear_pin_top();
+		translate([StemHoleCentre, 0, -HandleHeight / 2 - StemTopDepth])
+			rotate([0, 0, 90])
+				stem();
+	}
 }
