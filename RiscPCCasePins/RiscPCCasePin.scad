@@ -12,13 +12,12 @@
 // 2-slice front pin: 155.7mm
 // 2-slice rear pin: <won't fit in my calipers!>
 
-// Remember that the real locking pins for three slices or greater are made of metal.
-
 $fn = 25; // detail level
 
 Epsilon = 0.01; // aka bodge factor
 
-Slices = 2;
+// How many slices of case that the piece is intended for (1 or 2).
+Slices = 1;
 
 HandleWidth = 39.2; // X
 HandleDepth = 9.9; // Y
@@ -119,13 +118,12 @@ module stemcutter() {
 }
 
 module stemcuttergroup() {
-	ncuts = 4 * Slices - 1;
+	ncuts = 4 * Slices;
 	for (a = [0 : ncuts - 1])
 		translate([0, 0, - StemCutoutInterval * a - 2])
 			stemcutter();
 }
 
-// FIXME: 45deg is too high, should be less
 module barbcutter() {
 	scale(4 + Epsilon)
 		for (a = [0 : 3])
@@ -167,6 +165,4 @@ union() {
 	translate([StemHoleCentre, 0, -HandleHeight / 2 - StemTopDepth])
 		rotate([0, 0, 90])
 			stem();
-	// barbcutter();
-	// stemcuttergroup();
 }
