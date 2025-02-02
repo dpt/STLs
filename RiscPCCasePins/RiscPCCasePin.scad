@@ -1,75 +1,97 @@
 // OpenSCAD definition for Acorn Risc PC Locking Pin(s)
 //
-// This was measured from a real Risc PC locking pin to 0.1mm accuracy.
+// This was measured from real Risc PC locking pins to 0.1mm accuracy.
 //
 // by David Thomas, 31-Jan-25
 //
 
-// Total heights
-//
-// 1-slice front pin: 90.4mm
-// 1-slice rear pin: 96mm
-// 2-slice front pin: 155.7mm
-// 2-slice rear pin: <won't fit in my calipers!>
-
-// Bodge factor.
-Epsilon = 0.01;
-
-// Overall detail level.
-$fn = 25;
-
-// Number of slices of case that the pin is intended for.
+// Number of slices of case that the pin is for
 Slices = 1; // [1:Single slice, 2:Double slice]
 
-// Build the front or rear pin?
-Front = false;
+// Build front pin? (else back pin)
+Front = true;
 
-HandleWidth = 39.2; // X
-HandleDepth = 9.9; // Y
-HandleHeight = 5.1; // Z
+// Overall detail level
+$fn = 25;
+
+// Bodge factor
+Epsilon = 0.01;
+
+// Back pin: handle width (X/across)
+HandleWidth = 39.2;
+// Back pin: handle depth (Y/in)
+HandleDepth = 9.9;
+// Back pin: handle height (Z/up)
+HandleHeight = 5.1;
+// Back pin: handle inner width
 HandleInnerWidth = 7.1;
-HandleLipWidth = (HandleDepth - HandleInnerWidth) / 2; // width of lip around edge of handle
+// Back pin: width of lip around edge of handle
+HandleLipWidth = (HandleDepth - HandleInnerWidth) / 2;
+// Back pin: height of lip around edge of handle
 HandleLipHeight = 1.9;
 
-LockHoleDiameter = 6.4;
+// Both pins: hole in stem diameter
+StemHoleDiameter = HandleDepth - HandleLipWidth * 2;
+// Both pins: hole in stem depth (varies in reality)
+StemHoleHeight = 14.3; // from cut surface
+
+// Back pin: where the stem is centred
+StemHoleCentre = -(HandleWidth - HandleDepth) / 2;
+
+// Back pin: padlock hole diameter
+LockHoleDiameter = HandleInnerWidth - 0.7;
+// Back pin: padlock hole height
 LockHoleHeight = HandleHeight + Epsilon;
 
-StemHoleDiameter = HandleDepth - HandleLipWidth * 2;
-StemHoleDepth = 14.3; // from cut surface
-
-StemTopDiameter = 9.8;
-StemTopDepth = 12.6;
-
+// Back pin: pin locking hemisphere diameter
 SphereDiameter = HandleDepth - HandleLipWidth * 2;
+// Back pin: pin locking hemisphere height
 SphereHeight = 1.4;
 
-StemFixedHeight = 12.0;
-StemPerSliceHeight = 64.8; // depth of a case slice
-StemHeight = StemFixedHeight + StemPerSliceHeight * Slices; // has had rubber inset deducted
-StemTotalHeight = StemHeight; // total height of variable stem
-StemUpperDiameter = 7.1;
-StemBottomDiameter = 3.7; // guess
+// Stem: top diameter
+StemTopDiameter = 9.8;
+// Stem: top depth (varies in reality)
+StemTopHeight = Front ? 12 : 12.5;
 
-StemRubberInsetHeight = 1.9; // recess for rubber band to sit in
+// Stem: rubber ring inset diameter
 StemRubberInsetDiameter = 6.7;
+// Stem: rubber ring inset height
+StemRubberInsetHeight = 1.9; // recess for rubber band to sit in
 
+// Stem: fixed size portion of height
+StemFixedHeight = 12;
+// Stem: per-slice height (depth of a case slice)
+StemPerSliceHeight = 65;
+// Stem: overall height (note rubber ring inset height not part of this)
+StemHeight = StemFixedHeight + StemPerSliceHeight * Slices;
+// Stem: diameter at top
+StemUpperDiameter = 7.1;
+// Stem: diameter at bottom
+StemBottomDiameter = 3.7; // bit of a guess
+
+// Stem: cutout width
 StemCutoutWidth = 4;
+// Stem: cutout depth
 StemCutoutDepth = 4;
-StemCutoutHeight = 18; // doesn't vary with number of slices
+// Stem: cutout height (doesn't vary with number of slices)
+StemCutoutHeight = 18;
+// Stem: cutout interval
 StemCutoutInterval = 20;
+// Stem: increase for shallower cuts
 StemCutoutOffset = 2;
 
+// Barb: width
 BarbWidth = 8;
+// Barb: depth
 BarbDepth = 2;
+// Barb: height
 BarbHeight = 8;
 
-StemHoleCentre = -(HandleWidth - HandleDepth) / 2; // where the stem is centred
-
-// Width of handle extending halfway into lip. (Note: Lip width comes from rear pin calc).
+// Front pin: width of handle (extends halfway into lip but note lip width comes from Back pin calc)
 FrontHandleWidth = 14.9 - StemTopDiameter + HandleLipWidth / 2 - 2.3;
-// Increase this for a chunkier handle.
+// Front pin: increase this for a chunkier handle
 FrontHandleDepth = 2.3;
-// Increase this for a deeper handle.
+// Front pin: increase this for a deeper handle
 FrontHandleHeight = 6.1;
 
 module capsule(width, radius) {
@@ -80,7 +102,7 @@ module capsule(width, radius) {
 	}
 }
 
-module rear_pin_top_flat() {
+module back_pin_top_flat() {
 	difference() {
 		linear_extrude(HandleHeight, center = true)
 			capsule(HandleWidth, HandleDepth / 2);
@@ -94,33 +116,33 @@ module rear_pin_top_flat() {
 	}
 }
 
-module rear_pin_top() {
+module back_pin_top() {
 	difference() {
 		union() {
-			rear_pin_top_flat();
+			back_pin_top_flat();
 			
 			// add the top of the stem (must be here so we can cut into it)
-			translate([StemHoleCentre, 0, -StemTopDepth / 2 - HandleHeight / 2])
-				cylinder(h = StemTopDepth, d = StemTopDiameter, center = true);
+			translate([StemHoleCentre, 0, -StemTopHeight / 2 - HandleHeight / 2])
+				cylinder(h = StemTopHeight, d = StemTopDiameter, center = true);
 		
 			// add the spherical protrusion
-			translate([(HandleWidth - HandleDepth) / 2, 0, -HandleHeight / 2])
+			translate([-StemHoleCentre, 0, -HandleHeight / 2])
 				scale([1, 1, 0.5])
 					sphere(d = SphereDiameter);
 		}
 		
 		// cut hole in top of stem
-		translate([StemHoleCentre, 0, -StemHoleDepth / 2 + HandleHeight / 2 - HandleLipHeight + Epsilon * 2])
-			cylinder(h = StemHoleDepth, d = StemHoleDiameter, center = true);
+		translate([StemHoleCentre, 0, -StemHoleHeight / 2 + HandleHeight / 2 - HandleLipHeight + Epsilon * 2])
+			cylinder(h = StemHoleHeight, d = StemHoleDiameter, center = true);
    }
 }
 
 module front_pin_top() {
 	difference() {
 		union() {
-			cylinder(h = StemTopDepth, d = StemTopDiameter, center = true);
+			cylinder(h = StemTopHeight, d = StemTopDiameter, center = true);
 			
-			translate([StemTopDiameter / 2 + FrontHandleWidth / 2 - HandleLipWidth / 2, 0, StemTopDepth / 2 - FrontHandleHeight / 2]) {
+			translate([StemTopDiameter / 2 + FrontHandleWidth / 2 - HandleLipWidth / 2, 0, StemTopHeight / 2 - FrontHandleHeight / 2]) {
 				cube([FrontHandleWidth, FrontHandleDepth, FrontHandleHeight], center = true);
 				
 				translate([FrontHandleWidth / 2, 0, 0])
@@ -133,25 +155,33 @@ module front_pin_top() {
    }
 }
 
-module stemcutter() {
-	dims = [StemCutoutWidth, StemCutoutDepth, StemCutoutHeight];
+module stemcutter(height) {
+	dims = [StemCutoutWidth, StemCutoutDepth, height];
 	xo = (StemCutoutWidth + StemCutoutOffset) / 2;
 	yo = (StemCutoutDepth + StemCutoutOffset) / 2;
 	for (x = [-xo, xo])
 		for (y = [-yo, yo])
-			translate([x, y, - StemCutoutHeight / 2])
+			translate([x, y, - height / 2])
 				cube(dims, center = true);
 }
 
 module stemcuttergroup() {
-	ncuts = 4 * Slices;
-	for (a = [0 : ncuts - 1])
-		translate([0, 0, - StemCutoutInterval * a - 2])
-			stemcutter();
+	ncuts = 3.5 * Slices + 0.5;
+	offset = -2;
+	
+	for (a = [0 : ncuts - 2])
+		translate([0, 0, - StemCutoutInterval * a + offset])
+			stemcutter(StemCutoutHeight);
+	
+	// final cut should be longer (or we get grit in the barb)
+	a = floor(ncuts) - 1;
+	translate([0, 0, - StemCutoutInterval * a + offset])
+		stemcutter(StemCutoutHeight * 2);
 }
 
 module barbcutter() {
-	scale(4)
+	// cut away diagonals
+	scale(8)
 		for (a = [0 : 3])
 			rotate([90, 0, 90 * a + 45])
 				linear_extrude(height = 2, center = true)
@@ -166,11 +196,11 @@ module stem() {
 				cylinder(h = StemRubberInsetHeight, d = StemRubberInsetDiameter, center = true);
 
 				// main conic
-				translate([0, 0, -StemTotalHeight / 2 - StemRubberInsetHeight / 2]) {
-					cylinder(h = StemTotalHeight, d1 = StemBottomDiameter, d2 = StemUpperDiameter, center = true);
+				translate([0, 0, -StemHeight / 2 - StemRubberInsetHeight / 2]) {
+					cylinder(h = StemHeight, d1 = StemBottomDiameter, d2 = StemUpperDiameter, center = true);
 			
 					// barb (square at this point)
-					translate([0, 0, -StemTotalHeight / 2 + BarbHeight / 2])
+					translate([0, 0, -StemHeight / 2 + BarbHeight / 2])
 						cube([BarbWidth, BarbDepth, BarbHeight], center = true);
 				}
 			}
@@ -181,20 +211,36 @@ module stem() {
 			stemcuttergroup();
 		
 		// cut the barb
-		translate([0, 0, -StemRubberInsetHeight - StemTotalHeight - Epsilon])
+		translate([0, 0, -StemRubberInsetHeight - StemHeight - Epsilon])
 			barbcutter();
    }
 }
 
+// Total heights as measured from my set of pins for comparison.
+// Note that in reality some pins vary by 1/2mm in places.
+//
+// 1-slice front pin: 90.4mm
+// 2-slice front pin: 155.7mm
+//
+// 1-slice back pin: 96mm
+// 2-slice back pin: 160.6mm
+//
+
 union() {
 	if (Front) {
-		front_pin_top();
-		translate([0, 0, -StemTopDepth / 2])
-			stem();
-	} else {
-		rear_pin_top();
-		translate([StemHoleCentre, 0, -HandleHeight / 2 - StemTopDepth])
-			rotate([0, 0, 90])
+		total_height = StemTopHeight / 2 + StemRubberInsetHeight + StemHeight;
+		translate([0, 0, total_height]) {
+			front_pin_top();
+			translate([0, 0, -StemTopHeight / 2])
 				stem();
+		}
+	} else {
+		total_height = HandleHeight / 2 + StemTopHeight + StemRubberInsetHeight + StemHeight;
+		translate([-StemHoleCentre, 0, total_height]) {
+			back_pin_top();
+			translate([StemHoleCentre, 0, -HandleHeight / 2 - StemTopHeight])
+				rotate([0, 0, 90])
+					stem();
+		}
 	}
 }
