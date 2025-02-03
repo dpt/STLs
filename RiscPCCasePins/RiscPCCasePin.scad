@@ -50,42 +50,42 @@ SphereHeight = 1.4;
 
 // Stem: top diameter
 StemTopDiameter = 9.8;
-// Stem: top depth (varies in reality)
-StemTopHeight = Front ? 12 : 12.5;
+// Stem: top depth (front single slicer is 1/2mm shorter)
+StemTopHeight = (Front && Slices == 1) ? 12 : 12.5;
 
-// Stem: rubber ring inset diameter
-StemRubberInsetDiameter = 6.7;
-// Stem: rubber ring inset height
-StemRubberInsetHeight = 1.9; // recess for rubber band to sit in
+// Stem: O-ring inset diameter
+StemORingInsetDiameter = 6.8;
+// Stem: O-ring inset height
+StemORingInsetHeight = 1.5;
+// Stem: show the O-ring
+ShowORing = false;
 
 // Stem: fixed size portion of height
-StemFixedHeight = 12;
+StemFixedHeight = 12.1;
 // Stem: per-slice height (depth of a case slice)
-StemPerSliceHeight = 65;
+StemPerSliceHeight = 64.7; // measured
 // Stem: overall height (note rubber ring inset height not part of this)
 StemHeight = StemFixedHeight + StemPerSliceHeight * Slices;
 // Stem: diameter at top
-StemUpperDiameter = 7.1;
+StemUpperDiameter = 7.2;
 // Stem: diameter at bottom
-StemBottomDiameter = 3.7; // bit of a guess
+StemBottomDiameter = 4.3;
 
-// Stem: cutout width
-StemCutoutWidth = 4;
-// Stem: cutout depth
-StemCutoutDepth = 4;
+// Stem: cutout width/depth
+StemCutoutSize = 4;
 // Stem: cutout height (doesn't vary with number of slices)
 StemCutoutHeight = 18;
 // Stem: cutout interval
 StemCutoutInterval = 20;
 // Stem: increase for shallower cuts
-StemCutoutOffset = 2;
+StemCutoutOffset = 1.9;
 
 // Barb: width
 BarbWidth = 8;
 // Barb: depth
-BarbDepth = 2;
+BarbDepth = StemCutoutOffset;
 // Barb: height
-BarbHeight = 8;
+BarbHeight = 8.1;
 
 // Front pin: width of handle (extends halfway into lip but note lip width comes from Back pin calc)
 FrontHandleWidth = 14.9 - StemTopDiameter + HandleLipWidth / 2 - 2.3;
@@ -156,9 +156,9 @@ module front_pin_top() {
 }
 
 module stemcutter(height) {
-	dims = [StemCutoutWidth, StemCutoutDepth, height];
-	xo = (StemCutoutWidth + StemCutoutOffset) / 2;
-	yo = (StemCutoutDepth + StemCutoutOffset) / 2;
+	dims = [StemCutoutSize, StemCutoutSize, height];
+	xo = (StemCutoutSize + StemCutoutOffset) / 2;
+	yo = (StemCutoutSize + StemCutoutOffset) / 2;
 	for (x = [-xo, xo])
 		for (y = [-yo, yo])
 			translate([x, y, - height / 2])
@@ -191,12 +191,18 @@ module barbcutter() {
 module stem() {
 	difference() {
 		union() {
-			// inset for rubber band
-			translate([0, 0, -StemRubberInsetHeight / 2]) {
-				cylinder(h = StemRubberInsetHeight, d = StemRubberInsetDiameter, center = true);
+			// inset for rubber o-ring
+			translate([0, 0, -StemORingInsetHeight / 2]) {
+				cylinder(h = StemORingInsetHeight, d = StemORingInsetDiameter, center = true);
+				
+				// add the o-ring itself
+				if (ShowORing)
+					rotate_extrude(angle = 360)
+						translate([5 - 1.5 / 2, 0, 0])
+							circle(d = 1.5);
 
 				// main conic
-				translate([0, 0, -StemHeight / 2 - StemRubberInsetHeight / 2]) {
+				translate([0, 0, -StemHeight / 2 - StemORingInsetHeight / 2]) {
 					cylinder(h = StemHeight, d1 = StemBottomDiameter, d2 = StemUpperDiameter, center = true);
 			
 					// barb (square at this point)
@@ -207,11 +213,11 @@ module stem() {
 		}
 
 		// cut away the cuboid sections of stem
-		translate([0, 0, -StemRubberInsetHeight])
+		translate([0, 0, -StemORingInsetHeight])
 			stemcuttergroup();
 		
 		// cut the barb
-		translate([0, 0, -StemRubberInsetHeight - StemHeight - Epsilon])
+		translate([0, 0, -StemORingInsetHeight - StemHeight - Epsilon])
 			barbcutter();
    }
 }
@@ -219,24 +225,28 @@ module stem() {
 // Total heights as measured from my set of pins for comparison.
 // Note that in reality some pins vary by 1/2mm in places.
 //
-// 1-slice front pin: 90.4mm
-// 2-slice front pin: 155.7mm
+// 1-slice front pin: 90.4mm (both)			-- 90.3mm under
+// 2-slice front pin: 155.8mm, 155.9mm		-- 155.5mm under
 //
-// 1-slice back pin: 96mm
-// 2-slice back pin: 160.6mm
+// 1-slice back pin: 95.7mm, 96mm			-- 95.9mm in range
+// 2-slice back pin: 160.6mm (17.6+143.0)	-- matches
 //
 
 union() {
 	if (Front) {
-		total_height = StemTopHeight / 2 + StemRubberInsetHeight + StemHeight;
-		translate([0, 0, total_height]) {
+		echo("Front pin total height", StemTopHeight + StemORingInsetHeight + StemHeight);
+
+		offset = StemTopHeight / 2 + StemORingInsetHeight + StemHeight;
+		translate([0, 0, offset]) {
 			front_pin_top();
 			translate([0, 0, -StemTopHeight / 2])
 				stem();
 		}
 	} else {
-		total_height = HandleHeight / 2 + StemTopHeight + StemRubberInsetHeight + StemHeight;
-		translate([-StemHoleCentre, 0, total_height]) {
+		echo("Back pin total height", HandleHeight + StemTopHeight + StemORingInsetHeight + StemHeight);
+
+		offset = HandleHeight / 2 + StemTopHeight + StemORingInsetHeight + StemHeight;
+		translate([-StemHoleCentre, 0, offset]) {
 			back_pin_top();
 			translate([StemHoleCentre, 0, -HandleHeight / 2 - StemTopHeight])
 				rotate([0, 0, 90])
