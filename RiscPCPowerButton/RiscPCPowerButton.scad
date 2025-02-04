@@ -5,180 +5,210 @@
 // by David Thomas, 28-Jan-25
 //
 
-epsilon = 0.01; // aka bodge factor
-
-width = 13.9;
-height = 21.5;
-depth = 2.9;
-
-sidewidth = 1.6;
-leftdepth = 3;
-rightdepth = 2.9;
-
-reinforced = false; // makes the stem a solid tube
-
-stemwidth = 4.9;
-stemheight = 5.9;
-stemdepth = 26.3;
-stemmiddle = 1.7;
-
-cyldia = 5.8; // 5.9 wide, 5.7 high as measured but using an average here
-cyldepth = 9.6;
-
-cylcutout = 3.5;
-cylcutoutdepth = 9.0;
-
-mouthwidth = 6;
-mouthheight = 1.5;
-mouthdepth = 4;
-
-griprad = 0.5; // radius of grip bars inside mouth
-
-symbol = true; // enables symbol on button front
-symboldia = 5;
-symboldepth = 0.3;
-symbol_y = 3.15; // from bottom
-symbolthickness = 0.25;
-
-push = true; // enables push impression on button front
-pushsize = 45; // sphere diameter
-pushdepth = 1;
-push_y = 14; // from bottom
-
-top = false; // additional top fill
-
+// Overall quality level
 $fn = 30;
 
+Epsilon = 0.01; // aka bodge factor
+
+// Width of the main button (X)
+ButtonWidth = 13.9;
+// Depth of the main button (Y)
+ButtonDepth = 2.9;
+// Height of the main button (Z)
+ButtonHeight = 21.5;
+
+// Width of side pieces (X)
+SideWidth = 1.6;
+// Depth of left side piece (Y)
+LeftSideDepth = 3;
+// Depth of right side piece (Y)
+RightSideDepth = 2.9;
+
+// Enable additional top fill
+ExtraTopFill = false;
+
+// Reinforce the stem by making it solid
+ReinforcedStem = false;
+
+// Width of the stem (X)
+StemWidth = 4.9;
+// Depth of the stem (Y)
+StemDepth = 26.3;
+// Height of the stem (Z)
+StemHeight = 5.9;
+// Thickness of stem bars
+StemMiddle = 1.7;
+
+// Diameter of clip (X & Z)
+ClipDiameter = 5.8; // 5.9 wide, 5.7 high as measured but using an average here
+// Depth of clip (Y)
+ClipDepth = 9.6;
+
+// Size of square clip cut-out (X & Z)
+ClipSquareCutoutSize = 3.5;
+// Depth of square clip cut-out (Y)
+ClipSquareCutoutDepth = 9.0;
+
+// Width of wide clip cut-out (X)
+ClipMouthWidth = 6;
+// Depth of wide clip cut-out (Y)
+ClipMouthDepth = 4;
+// Height of wide clip cut-out (Z)
+ClipMouthHeight = 1.5;
+
+// Radius of grip bars inside mouth
+ClipGripperRadius = 0.5;
+
+// Enable power symbol on button
+EnableSymbol = true;
+// Diameter of symbol
+SymbolDiameter = 5;
+// Depth of symbol from button front
+SymbolDepth = 0.3;
+// Offset of symbol from button bottom
+SymbolYPosition = 3.15;
+// Stroke thickness of symbol
+SymbolThickness = 0.25;
+
+// Enable push impression on button
+EnablePushImpression = true;
+// Diameter of sphere
+PushImpressionSize = 45;
+// Depth of impression from button front
+PushImpressionDepth = 1;
+// Offset of impression from button bottom
+PushImpressionYPosition = 14;
+
 module powersymbol() {
-    linear_extrude(symboldepth)
-        union() {
-            difference() {
-                circle(d = symboldia);
-                circle(d = symboldia - symbolthickness * 2);
-            }
-            square([symbolthickness, symboldia * 3 / 4], center = true);
-        }
+	linear_extrude(SymbolDepth)
+		union() {
+			difference() {
+				circle(d = SymbolDiameter);
+				circle(d = SymbolDiameter - SymbolThickness * 2);
+			}
+			square([SymbolThickness, SymbolDiameter * 3 / 4], center = true);
+		}
 }
 
 module plainfront() {
 	union() {
-        // front
-        button = [width, depth, height];
-        cube(size = button);
+		// front
+		button = [ButtonWidth, ButtonDepth, ButtonHeight];
+		cube(size = button);
 
-		lefthand = [sidewidth, leftdepth, height];
-		translate([0, depth, 0])
+		lefthand = [SideWidth, LeftSideDepth, ButtonHeight];
+		translate([0, ButtonDepth, 0])
 			cube(size = lefthand);
 
-		righthand = [sidewidth, rightdepth, height];
-		translate([width - sidewidth, depth, 0])
+		righthand = [SideWidth, RightSideDepth, ButtonHeight];
+		translate([ButtonWidth - SideWidth, ButtonDepth, 0])
 			difference() {
 				cube(size = righthand);
 
-				// using epsilon here to avoid edges colliding
-				t = sidewidth;
-				translate([0, rightdepth - t, -epsilon])
-					linear_extrude(height + epsilon * 2)
-						polygon(points=[[t + epsilon, -epsilon],
-								[t + epsilon, t + epsilon],
-								[-epsilon, t + epsilon]]);
+				// using Epsilon here to avoid edges colliding
+				t = SideWidth;
+				translate([0, RightSideDepth - t, -Epsilon])
+					linear_extrude(ButtonHeight + Epsilon * 2)
+						polygon(points=[[t + Epsilon, -Epsilon],
+								[t + Epsilon, t + Epsilon],
+								[-Epsilon, t + Epsilon]]);
 			}
 		
 		// top fill (additional)
-		if (top) {
-			top = [width - sidewidth * 2, leftdepth, sidewidth];
-			translate([sidewidth, depth, height - sidewidth])
+		if (ExtraTopFill) {
+			top = [ButtonWidth - SideWidth * 2, LeftSideDepth, SideWidth];
+			translate([SideWidth, ButtonDepth, ButtonHeight - SideWidth])
 				cube(size = top);
-	    }
-    }
+		}
+	}
 }
 
 module front() {
-    union() {
-        difference() {
-            plainfront();
-            
-            // push impression
-            if (push) {
-                translate([width / 2, -pushsize / 2 + pushdepth, push_y])
-                    sphere(d = pushsize, $fn = $fn * 5);
-            }
-        }
+	union() {
+		difference() {
+			plainfront();
+			
+			// push impression
+			if (EnablePushImpression) {
+				translate([ButtonWidth / 2, -PushImpressionSize / 2 + PushImpressionDepth, PushImpressionYPosition])
+					sphere(d = PushImpressionSize, $fn = $fn * 5);
+			}
+		}
 
 		// power symbol
-		if (symbol) {
-			translate([width / 2, -symboldepth, symbol_y])
+		if (EnableSymbol) {
+			translate([ButtonWidth / 2, -SymbolDepth, SymbolYPosition])
 				rotate([-90, 0, 0])
-                    powersymbol();
+					powersymbol();
 		}
 	}
 }
 
 module cross() {
-    if (!reinforced) {
-        union() {
-            // cross part
-            linear_extrude(stemdepth)
-                union() {
-                    square([stemmiddle, stemheight], center = true);
-                    square([stemwidth, stemmiddle], center = true);
-                }
+	if (!ReinforcedStem) {
+		union() {
+			// cross part
+			linear_extrude(StemDepth)
+				union() {
+					square([StemMiddle, StemHeight], center = true);
+					square([StemWidth, StemMiddle], center = true);
+				}
 
-            // cylinder part
-            translate([0, 0, stemdepth + cyldepth / 2])
-                cylinder(h = cyldepth, r = cyldia / 2, center = true);
-        }
-    } else {
-        translate([0, 0, (stemdepth + cyldepth) / 2])
-            cylinder(h = stemdepth + cyldepth, r1 = cyldia / 2, r2 = cyldia / 2, center = true);
-    }
+			// clip part
+			translate([0, 0, StemDepth + ClipDepth / 2])
+				cylinder(h = ClipDepth, r = ClipDiameter / 2, center = true);
+		}
+	} else {
+		translate([0, 0, (StemDepth + ClipDepth) / 2])
+			cylinder(h = StemDepth + ClipDepth, r1 = ClipDiameter / 2, r2 = ClipDiameter / 2, center = true);
+	}
 }
 
 module clipcutout() {
-    difference() {
-        union() {
-            // cut out the square section
-            translate([0, 0, (cyldepth - cylcutoutdepth) / 2 + epsilon])
-                cube([cylcutout, cylcutout, cylcutoutdepth], center = true);
+	difference() {
+		union() {
+			// cut out the square section
+			translate([0, 0, (ClipDepth - ClipSquareCutoutDepth) / 2 + Epsilon])
+				cube([ClipSquareCutoutSize, ClipSquareCutoutSize, ClipSquareCutoutDepth], center = true);
 
-            // cut out the mouth section
-            translate([0, 0, (cyldepth - mouthdepth) / 2 + epsilon]) {
-                cube([mouthwidth, mouthheight, mouthdepth], center = true);
-                
-                // round off the mouth section
-                translate([0, 0, -mouthdepth / 2])
-                    rotate([0, 90, 0])
-                        cylinder(h = mouthwidth, r = 0.75, center = true);
-            }
-        }
-        
-        // add grip bars inside the mouth
-        
-        y = cylcutout / 2 + griprad / 2;
-        
-        translate([0, y, cylcutoutdepth / 2 - 1])
-            rotate([0, 90, 0])
-                cylinder(h = cylcutout, r = griprad, center = true);
-        
-        translate([0, -y, cylcutoutdepth / 2 - 1])
-            rotate([0, 90, 0])
-                cylinder(h = cylcutout, r = griprad, center = true);
-    }
+			// cut out the mouth section
+			translate([0, 0, (ClipDepth - ClipMouthDepth) / 2 + Epsilon]) {
+				cube([ClipMouthWidth, ClipMouthHeight, ClipMouthDepth], center = true);
+				
+				// round off the mouth section
+				translate([0, 0, -ClipMouthDepth / 2])
+					rotate([0, 90, 0])
+						cylinder(h = ClipMouthWidth, r = 0.75, center = true);
+			}
+		}
+		
+		// add grip bars inside the mouth
+		
+		y = ClipSquareCutoutSize / 2 + ClipGripperRadius / 2;
+		
+		translate([0, y, ClipSquareCutoutDepth / 2 - 1])
+			rotate([0, 90, 0])
+				cylinder(h = ClipSquareCutoutSize, r = ClipGripperRadius, center = true);
+		
+		translate([0, -y, ClipSquareCutoutDepth / 2 - 1])
+			rotate([0, 90, 0])
+				cylinder(h = ClipSquareCutoutSize, r = ClipGripperRadius, center = true);
+	}
 }
 
 module stem() {
-    difference() {
-        cross();
-        
-        translate([0, 0, stemdepth + cyldepth / 2])
-            clipcutout();
-    }
+	difference() {
+		cross();
+		
+		translate([0, 0, StemDepth + ClipDepth / 2])
+			clipcutout();
+	}
 }
 
 union() {
-    front();
-    
-    translate([width / 2, depth, 17 - stemheight / 2])
-        rotate([-90, 0, 0])
-            stem();
+	front();
+	
+	translate([ButtonWidth / 2, ButtonDepth, 17 - StemHeight / 2])
+		rotate([-90, 0, 0])
+			stem();
 }
