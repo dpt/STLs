@@ -5,6 +5,11 @@
 // by David Thomas, 28-Jan-25
 //
 
+// Note: There's another type of power button that this recreation does not
+// model. It has a straight edge on its right hand back side, not sloped, and
+// it has a cut in the stem. I don't have a surviving one of these buttons to
+// measure.
+
 // Overall detail level
 $fn = 30;
 
