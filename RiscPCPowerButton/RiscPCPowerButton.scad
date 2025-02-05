@@ -5,16 +5,17 @@
 // by David Thomas, 28-Jan-25
 //
 
-// Overall quality level
+// Overall detail level
 $fn = 30;
 
-Epsilon = 0.01; // aka bodge factor
+// Bodge factor
+Epsilon = 0.01;
 
-// Width of the main button (X)
+// Width of the main button (X/across)
 ButtonWidth = 13.9;
-// Depth of the main button (Y)
+// Depth of the main button (Y/in)
 ButtonDepth = 2.9;
-// Height of the main button (Z)
+// Height of the main button (Z/up)
 ButtonHeight = 21.5;
 
 // Width of side pieces (X)
@@ -28,7 +29,7 @@ RightSideDepth = 2.9;
 ExtraTopFill = false;
 
 // Reinforce the stem by making it solid
-ReinforcedStem = false;
+SolidStem = false;
 
 // Width of the stem (X)
 StemWidth = 4.9;
@@ -123,7 +124,7 @@ module plainfront() {
 	}
 }
 
-module front() {
+module adornedfront() {
 	union() {
 		difference() {
 			plainfront();
@@ -144,8 +145,8 @@ module front() {
 	}
 }
 
-module cross() {
-	if (!ReinforcedStem) {
+module stem() {
+	if (!SolidStem) {
 		union() {
 			// cross part
 			linear_extrude(StemDepth)
@@ -164,7 +165,7 @@ module cross() {
 	}
 }
 
-module clipcutout() {
+module clipcutter() {
 	difference() {
 		union() {
 			// cut out the square section
@@ -196,19 +197,19 @@ module clipcutout() {
 	}
 }
 
-module stem() {
+module cutstem() {
 	difference() {
-		cross();
+		stem();
 		
 		translate([0, 0, StemDepth + ClipDepth / 2])
-			clipcutout();
+			clipcutter();
 	}
 }
 
 union() {
-	front();
+	adornedfront();
 	
 	translate([ButtonWidth / 2, ButtonDepth, 17 - StemHeight / 2])
 		rotate([-90, 0, 0])
-			stem();
+			cutstem();
 }
